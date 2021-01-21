@@ -59,7 +59,7 @@ def output_results(results_dir, results_file, run_time, rampup, ts_interval, use
     trans_timer_points = []  # [elapsed, timervalue]
     trans_timer_vals = []
     for resp_stats in results.resp_stats_list:
-        t = (resp_stats.elapsed_time, resp_stats.trans_time)
+        t = (resp_stats.elapsed_time, resp_stats.trans_time, resp_stats.error)
         trans_timer_points.append(t)
         trans_timer_vals.append(resp_stats.trans_time)
     graph.resp_graph_raw(trans_timer_points, 'All_Transactions_response_times.png', results_dir)
@@ -141,7 +141,7 @@ def output_results(results_dir, results_file, run_time, rampup, ts_interval, use
         for resp_stats in results.resp_stats_list:
             try:
                 val = resp_stats.custom_timers[timer_name]
-                custom_timer_points.append((resp_stats.elapsed_time, val))
+                custom_timer_points.append((resp_stats.elapsed_time, val, resp_stats.error))
                 custom_timer_vals.append(val)
             except KeyError:
                 pass
@@ -289,8 +289,9 @@ class Results(object):
 
             r = ResponseStats(request_num, elapsed_time, epoch_secs, user_group_name, trans_time, error, custom_timers)
 
-            if elapsed_time < self.run_time:  # drop all times that appear after the last request was sent (incomplete interval)
-                resp_stats_list.append(r)
+            # do not exclude these times so we see all errors
+            #if elapsed_time < self.run_time:  # drop all times that appear after the last request was sent (incomplete interval)
+            resp_stats_list.append(r)
 
             if error != '':
                 self.total_errors += 1
@@ -317,7 +318,7 @@ def split_series(points, interval):
     offset = points[0][0]
     maxval = int((points[-1][0] - offset) // interval)
     vals = defaultdict(list)
-    for key, value in points:
+    for key, value, error in points:
         vals[(key - offset) // interval].append(value)
     series = [vals[i] for i in range(maxval + 1)]
     return series

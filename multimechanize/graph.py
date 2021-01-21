@@ -27,11 +27,19 @@ def resp_graph_raw(nested_resp_list, image_name, dir='./'):
     ax.grid(True, color='#666666')
     xticks(size='x-small')
     yticks(size='x-small')
-    x_seq = [item[0] for item in nested_resp_list]
-    y_seq = [item[1] for item in nested_resp_list]
-    ax.plot(x_seq, y_seq,
-        color='blue', linestyle='-', linewidth=0.0, marker='o',
-        markeredgecolor='blue', markerfacecolor='blue', markersize=2.0)
+    x_seq_ok = []
+    y_seq_ok = []
+    x_seq_err = []
+    y_seq_err = []
+    for item in nested_resp_list:
+        if item[2] == '': # empty error field means ok
+             x_seq_ok.append(item[0])
+             y_seq_ok.append(item[1])
+        else: # error
+             x_seq_err.append(item[0])
+             y_seq_err.append(item[1])
+    ax.plot(x_seq_ok, y_seq_ok, color='blue', linestyle='-', linewidth=0.0, marker='o', markeredgecolor='blue', markerfacecolor='blue', markersize=2.0)
+    ax.plot(x_seq_err, y_seq_err, color='red', linestyle='-', linewidth=0.0, marker='o', markeredgecolor='red', markerfacecolor='red', markersize=2.0)
     ax.plot([0.0,], [0.0,], linewidth=0.0, markersize=0.0)
     savefig(dir + image_name)
 
